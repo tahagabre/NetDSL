@@ -2,17 +2,20 @@ import Foundation
 
 extension Endpoint {
 
-	/// Sets the request body by JSON-encoding a value with a default `JSONEncoder`.
+	/// Sets the request body by JSON-encoding a value.
 	///
 	/// Replaces any previously set body. This doesn't add a `Content-Type` header.
-	/// - Parameter body: The value to encode.
+	/// - Parameters:
+	///   - body: The value to encode.
+	///   - encoder: The encoder to use, such as one with `.convertToSnakeCase` keys. Defaults to a plain `JSONEncoder`.
 	/// - Returns: A copy of the endpoint with the encoded body set.
-	/// - Throws: The error from `JSONEncoder` if encoding fails.
+	/// - Throws: The error from `encoder` if encoding fails.
 	public func body<RequestBody: Encodable>(
-		_ body: RequestBody
+		_ body: RequestBody,
+		encoder: JSONEncoder = JSONEncoder()
 	) throws -> Endpoint {
 		var copy = self
-		let data = try JSONEncoder().encode(body)
+		let data = try encoder.encode(body)
 		copy.body = data
 		return copy
 	}

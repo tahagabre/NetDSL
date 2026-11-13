@@ -32,15 +32,40 @@ private final class StubURLProtocol: URLProtocol {
 private struct StaticRequest: URLRequestConvertible {
 	let request: URLRequest
 	func urlRequest() throws -> URLRequest { request }
-	func url() throws -> URL { request.url! }
-	func urlComponents() throws -> URLComponents { URLComponents(url: request.url!, resolvingAgainstBaseURL: false)! }
 }
 
 private struct FailingRequest: URLRequestConvertible {
 	struct BuildError: Error {}
 	func urlRequest() throws -> URLRequest { throw BuildError() }
-	func url() throws -> URL { throw BuildError() }
-	func urlComponents() throws -> URLComponents { throw BuildError() }
+}
+
+/// Implements only the one requirement, to check the other overloads come for free.
+private final class RecordingNetworking: Networking, @unchecked Sendable {
+	var requests: [URLRequest] = []
+	func network(request: URLRequest) async throws -> HTTPResponse {
+		requests.append(request)
+		return (Data(), URLResponse())
+	}
+}
+
+struct NetworkingDefaultsTests {
+	@Test func urlOverloadForwardsToRequest() async throws {
+		let networking = RecordingNetworking()
+		_ = try await networking.network(url: URL(string: "https://api.example.com/users")!)
+		#expect(networking.requests.map(\.url?.absoluteString) == ["https://api.example.com/users"])
+	}
+
+	@Test func convertibleOverloadForwardsBuiltRequest() async throws {
+		let networking = RecordingNetworking()
+		let endpoint = Endpoint()
+			.scheme(.https)
+			.host("api.example.com")
+			.path("/users")
+			.post()
+		_ = try await networking.network(request: endpoint)
+		#expect(networking.requests.map(\.url?.absoluteString) == ["https://api.example.com/users"])
+		#expect(networking.requests.map(\.httpMethod) == ["POST"])
+	}
 }
 
 // Serialized because the stub's handler and recorded requests are shared static state.
@@ -111,7 +136,7 @@ final class HTTPClientTests {
 		#expect(sentRequest?.httpMethod == "GET")
 	}
 
-	// MARK: network(endpoint:)
+	// MARK: network(request: Endpoint)
 
 	@Test func endpointIsBuiltAndSent() async throws {
 		stub(body: "posted")
@@ -123,7 +148,7 @@ final class HTTPClientTests {
 			.post()
 			.bearer("abc123")
 			.applicationJson()
-		let (data, _) = try await client.network(endpoint: endpoint)
+		let (data, _) = try await client.network(request: endpoint)
 		#expect(String(decoding: data, as: UTF8.self) == "posted")
 		#expect(sentRequest?.url?.absoluteString == "https://api.example.com/users?page=2")
 		#expect(sentRequest?.httpMethod == "POST")
@@ -137,7 +162,7 @@ final class HTTPClientTests {
 			.scheme(.https)
 			.path("/users")
 		await #expect(throws: EndpointError.missingHost) {
-			try await self.client.network(endpoint: endpoint)
+			try await self.client.network(request: endpoint)
 		}
 		#expect(StubURLProtocol.requests.isEmpty)
 	}

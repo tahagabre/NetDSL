@@ -32,6 +32,18 @@ struct EndpointTests {
 		#expect(endpoint.path == "/users")
 	}
 
+	@Test func pathAddsMissingLeadingSlash() {
+		let endpoint = Endpoint()
+			.path("users/42")
+		#expect(endpoint.path == "/users/42")
+	}
+
+	@Test func emptyPathBecomesRoot() {
+		let endpoint = Endpoint()
+			.path("")
+		#expect(endpoint.path == "/")
+	}
+
 	@Test func hostIsSet() {
 		let endpoint = Endpoint()
 			.host("api.example.com")
@@ -182,6 +194,15 @@ struct EndpointTests {
 			.body(Payload(id: 7))
 		let body = try #require(endpoint.body)
 		#expect(try JSONDecoder().decode(Payload.self, from: body) == Payload(id: 7))
+	}
+
+	@Test func encodableBodyUsesGivenEncoder() throws {
+		struct Payload: Encodable { let userId: Int }
+		let encoder = JSONEncoder()
+		encoder.keyEncodingStrategy = .convertToSnakeCase
+		let endpoint = try Endpoint()
+			.body(Payload(userId: 7), encoder: encoder)
+		#expect(endpoint.body == Data(#"{"user_id":7}"#.utf8))
 	}
 
 	@Test func encodableBodyThrowsOnEncodingFailure() {

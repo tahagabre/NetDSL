@@ -32,14 +32,14 @@ public struct Endpoint: Sendable {
 
 	/// Sets the URL path, such as `/users/42`.
 	///
-	/// Replaces any previously set path.
+	/// Replaces any previously set path. A leading `/` is added if missing, so `users` becomes `/users`.
 	/// - Parameter path: The path appended after the host.
 	/// - Returns: A copy of the endpoint with the path set.
 	public func path(
 		_ path: String
 	) -> Endpoint {
 		var copy = self
-		copy.path = path
+		copy.path = path.hasPrefix("/") ? path : "/" + path
 		return copy
 	}
 }

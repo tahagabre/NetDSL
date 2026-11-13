@@ -107,12 +107,11 @@ struct EndpointURLRequestConvertibleTests {
 		}
 	}
 
-	@Test func urlThrowsInvalidURLWhenPathLacksLeadingSlash() {
-		#expect(throws: EndpointError.invalidURL) {
-			try base
-				.path("users")
-				.url()
-		}
+	@Test func urlWorksWhenPathLacksLeadingSlash() throws {
+		let url = try base
+			.path("users")
+			.url()
+		#expect(url.absoluteString == "https://api.example.com/users")
 	}
 
 	// MARK: urlRequest()

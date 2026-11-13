@@ -8,18 +8,14 @@ public enum EndpointError: Error {
 	case missingScheme
 	/// No host was set. Use `host(_:)`.
 	case missingHost
-	/// The parts don't form a valid URL, such as a path without a leading `/`.
+	/// The parts don't form a valid URL.
 	case invalidURL
 }
 
-/// A type that can build a `URLRequest`, and the `URL` and `URLComponents` behind it.
+/// A type that can build a `URLRequest`, so it can be sent with `network(request:)` on any ``Networking``.
 public protocol URLRequestConvertible {
-	/// Builds the full request to send, such as with `URLSession`.
+	/// Builds the full request to send.
 	func urlRequest() throws -> URLRequest
-	/// Builds the request's URL.
-	func url() throws -> URL
-	/// Builds the URL's components: scheme, host, path and query.
-	func urlComponents() throws -> URLComponents
 }
 
 extension Endpoint: URLRequestConvertible {
@@ -54,7 +50,7 @@ extension Endpoint: URLRequestConvertible {
 
 	/// Builds the URL from the scheme, host, path and queries, such as `https://api.example.com/users?page=2`.
 	///
-	/// Scheme, host and path are required. The path must start with `/`.
+	/// Scheme, host and path are required.
 	/// Query values are percent-encoded for you.
 	/// - Returns: The full URL.
 	/// - Throws: ``EndpointError/missingScheme``, ``EndpointError/missingHost``,
