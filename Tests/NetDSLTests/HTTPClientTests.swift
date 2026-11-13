@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Networking
+@testable import NetDSL
 
 /// Intercepts every request on a session so tests never hit the network.
 private final class StubURLProtocol: URLProtocol {

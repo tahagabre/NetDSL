@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Networking
+@testable import NetDSL
 
 struct EndpointURLRequestConvertibleTests {
 	private let base = Endpoint()

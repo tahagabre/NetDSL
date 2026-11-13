@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Networking
+@testable import NetDSL
 
 struct EndpointTests {
 	private struct TestError: Error {}
