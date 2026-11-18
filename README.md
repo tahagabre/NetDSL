@@ -24,7 +24,7 @@ Add the package with Swift Package Manager (Swift 6.4 or later):
 
 ```swift
 dependencies: [
-	.package(url: "https://github.com/tahagabre/NetDSL.git", branch: "main"),
+	.package(url: "https://github.com/tahagabre/NetDSL.git", from: "0.1.0"),
 ],
 targets: [
 	.target(
